@@ -1,0 +1,80 @@
+Simulador de asignacion de memoria Round Robin con quanto = 3 y particiones fijas con worst fit
+
+Mostramos por pantalla:
+- Proceso en ejecucion
+- Procesos en cola listos
+- Procesos finalizados hasta el momento
+- Instantanea de la memoria principal
+
+Mostramos al finalizar:
+- Tiempo de retorno de cada Proceso
+- Tiempo de espera de cada Proceso
+- Tiempos promedios de retorno y espera
+
+Registros:
+- Procesos: proceso_id, tiempo_arribo, tiempo_espera, estado, tamanio
+- Memoria principal: particion_id, dir_inicial, tamanio, fr_int, estado
+- Tiempos: proceso_id, tiempo_retorno, tiempo_espera
+
+Variables:
+- procesos: lista de objetos
+- cronograma_RR: diccionario de tiempos de arribo y procesos
+- cola_listos: lista de procesos
+- cola_finalizados: lista de procesos
+- mp: diccionario del id_particion y sus atributos
+- tiempos: proceso y sus tiempos
+- promedio_retorno
+- promedio_espera
+- rendimiento
+
+Pasos:
+1. Ordenar los procesos segun su tiempo de arribo
+2. Hacer el cronograma round Robin
+    2.1. Ver el tiempo de arribo 
+    2.2. Agregamos el proceso al cronograma con el tiempo inicial
+    2.3. Si el tiempo de irrupcion es menor al quantum, entonces le sumamos el tiempo del proceso al tiempo general y ponemos en cero el tiempo de irrupcion del proceso
+    2.4. Sino le sumamos el tiempo del quantum al tiempo general y se le resta el quantum al tiempo de irrupcion del proceso
+    2.5. Se repite hasta que todos los tiempos de irrupcion queden en cero
+3. Asignar las particiones a los procesos
+    3.1. Agregar a cola de listos todos los procesos que lleguen en el tiempo inicial o antes y los sacamos del cronograma
+    3.2. Asignamos al primer proceso una particion en MP segun worst fit
+        3.2.1. Seleccionar la particion que mayor fragmentacion interna produzca y este libre
+        3.2.2. Si existe, asignarle al proceso esa particion y mostrar la fr_interna
+        3.2.3. Sino, no lo asigno
+    3.3. Repetimos el punto 3.2 hasta que un proceso no tenga particiones libres o no quepa
+    3.4. Ver que proceso se esta ejecutando en un tiempo, si esta asignado en MP y cambiar su estado a 'Ejecutandose'
+    3.5. Al tiempo general le sumamos el quanto o el tiempo de irrupcion, y segun corresponda modificar el tiempo de irrupcion del proceso 
+    3.6. Chequeamos si el proceso finalizo o necesita otro round
+    3.7. Si finalizo lo agregamos a la cola de finalizados
+    3.8. Sino vuelve al final de la cola de listos
+
+
+Salida por cada proceso ejecutado:
+
+Id particion: id_particion
+Id del proceso: id_proceso
+
+-------------------------------------------------
+/ 1 / dir_inicial / id_proceso / tamanio / fr_int   
+-------------------------------------------------
+/ 2 / dir_inicial / id_proceso / tamanio / fr_int
+-------------------------------------------------
+/ 3 / dir_inicial / id_proceso / tamanio / fr_int
+-------------------------------------------------
+
+Estado cola de listos: P1, P2, P3, Pn
+
+Procesos finalizados: P1, Pn
+
+Salida final:
+
+------------------------------------------------
+/ id_proceso / tiempo_retorno / tiempo_espera / 
+------------------------------------------------
+/ id_proceso / tiempo_retorno / tiempo_espera / 
+-------------------------------------------------
+
+Tiempo promedio de retorno: tiempo
+Tiempo promedio de espera: tiempo
+
+Rendimiento del sistema: tiempo

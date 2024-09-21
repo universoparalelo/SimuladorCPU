@@ -1,6 +1,8 @@
 import json
 import time
+import csv
 
+# Constantes
 QUANTO = 3
 
 
@@ -23,14 +25,13 @@ def round_robin(procesos, quanto=3):
 
                 cronograma_falso[time] = proceso["proceso_id"]
     
-    data = getData()
+    # data = getData()
     for tiempo, nombre_proceso in cronograma_falso.items():
         for proceso in data:
             if (nombre_proceso==proceso['proceso_id']):
                 cronograma[tiempo] = proceso
 
     return cronograma
-
 
 def worst_fit(cola_listos, mp, finalizados):
     max_espacio_libre = 0
@@ -99,19 +100,34 @@ def procesador(cronograma):
             finalizados.append(cronograma[len(finalizados)])
         else:
             tiempo += QUANTO
-        
+
+def leer_json(json_file_path):
+    with open(json_file_path, mode='r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+    return data
+
+def leer_csv(csv_file_path):
+    data = []
+    with open(csv_file_path, mode='r', encoding='utf-8') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            data.append(row)
+    return data
+
+def cargar_datos(file_path):
+    if file_path.endswith('.json'):
+        return leer_json(file_path)
+    elif file_path.endswith('.csv'):
+        return leer_csv(file_path)
+    else:
+        raise ValueError("Formato de archivo no soportado. Usa JSON o CSV.")
 
 
-
-def getData():
-    # Leer el JSON desde un archivo
-    with open('procesos.json', 'r') as file:
-        return json.load(file)
-
-
-data = getData()
+#######################################################
+data = cargar_datos('procesos.json')
 
 cronograma = round_robin(data)
+
 print(cronograma)
 # procesador(cronograma)
 

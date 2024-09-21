@@ -28,25 +28,77 @@ Variables:
 - rendimiento
 
 Pasos:
-1. Ordenar los procesos segun su tiempo de arribo
-2. Hacer el cronograma round Robin
-    2.1. Ver el tiempo de arribo 
-    2.2. Agregamos el proceso al cronograma con el tiempo inicial
-    2.3. Si el tiempo de irrupcion es menor al quantum, entonces le sumamos el tiempo del proceso al tiempo general y ponemos en cero el tiempo de irrupcion del proceso
-    2.4. Sino le sumamos el tiempo del quantum al tiempo general y se le resta el quantum al tiempo de irrupcion del proceso
-    2.5. Se repite hasta que todos los tiempos de irrupcion queden en cero
-3. Asignar las particiones a los procesos
-    3.1. Agregar a cola de listos todos los procesos que lleguen en el tiempo inicial o antes y los sacamos del cronograma
-    3.2. Asignamos al primer proceso una particion en MP segun worst fit
-        3.2.1. Seleccionar la particion que mayor fragmentacion interna produzca y este libre
-        3.2.2. Si existe, asignarle al proceso esa particion y mostrar la fr_interna
-        3.2.3. Sino, no lo asigno
-    3.3. Repetimos el punto 3.2 hasta que un proceso no tenga particiones libres o no quepa
-    3.4. Ver que proceso se esta ejecutando en un tiempo, si esta asignado en MP y cambiar su estado a 'Ejecutandose'
-    3.5. Al tiempo general le sumamos el quanto o el tiempo de irrupcion, y segun corresponda modificar el tiempo de irrupcion del proceso 
-    3.6. Chequeamos si el proceso finalizo o necesita otro round
-    3.7. Si finalizo lo agregamos a la cola de finalizados
-    3.8. Sino vuelve al final de la cola de listos
+1. Inicio del proceso de ordenar los procesos segun su tiempo de arribo.
+    1.1 Evaluar la lista de procesos disponibles
+    1.2 Verificar si la lista está vacía:
+        "No": Conecta con el siguiente paso.
+        "Sí": "Fin del proceso de ordenar".
+    1.3 Obtener proceso con menor tiempo de arribo
+    1.4 Agregar proceso a una lista de procesos ordenados
+    1.5 Eliminar proceso de la lista original
+    1.6 ¿Hay más procesos en la lista?:
+        "Sí": Regresar a "Evaluar la lista de procesos disponibles".
+        "No": "Fin del proceso de planificación".
+    1.7 Fin:
+
+2. Inicio del cronograma round Robin
+    2.1 Inicializar tiempo general
+    2.2 ¿Hay procesos en la lista?:
+        "Sí": "Fin del cronograma".
+        "No": Continuar al siguiente paso.
+    2.3 Seleccionar proceso de la lista de procesos_ordenados
+    2.4 Verificar si el proceso llegó
+        "Sí": Conectar al siguiente paso.
+        "No": "Incrementar tiempo_general y verificar de nuevo".
+    2.5 Agregar proceso al cronograma:
+    2.6 ¿Tiempo de irrupción <= quantum?:
+        "Sí": Conectar al siguiente paso.
+        "No": Continuar al paso 10.
+    2.7 Sumar tiempo de irrupción al tiempo general
+    2.8 Eliminar proceso
+    2.9 Conectar nuevamente al paso 3 (revisar si hay más procesos).
+    2.10 Reducir tiempo de irrupción del proceso
+    2.11 Sumar quantum al tiempo general
+    2.12 Colocar proceso al final de la lista:
+    2.13 ¿Proceso finalizado?:
+        "Sí": Conectar al paso 9 (eliminar el proceso).
+        "No": Conectar de nuevo al paso 3 (para seleccionar el siguiente proceso).
+    2.14 Fin
+
+3. Asignar las particiones a los procesos segun Worst Fit
+    3.1 Inicializar tiempo general
+    3.2 ¿Hay procesos en la cola de listos?
+        "Sí": Ir al paso 11.
+        "No": Continuar con el siguiente paso.
+    3.3 Seleccionar proceso de la cola de listos
+    3.4 ¿El proceso cabe en alguna partición libre? (Worst Fit)
+        "Sí": Ir al paso 6.
+        "No": Ir al paso 9.
+    3.5 Asignar partición según Worst Fit
+    3.6 Calcular fragmentación interna
+    3.7 Eliminar proceso de la cola de listos
+    3.8 ¿Se han asignado todos los procesos posibles?:
+        "Sí": Continuar al paso 11.
+        "No": Volver al paso 4.
+    3.9 ¿Procesos no asignados?:
+    3.10 ¿Proceso en cronograma listo para ejecutarse?
+        "Sí": Continuar al paso 12.
+        "No": Ir al paso 15.
+    3.11 Ejecutar proceso:
+    3.12 ¿Tiempo de ejecución terminado?:
+        "Sí": Ir al paso 14.
+        "No": Ir al paso 17.
+    3.13 Mover proceso a la lista de finalizados
+    3.14 Continuar al paso 18.
+    3.15 Sumar quantum o tiempo de irrupción restante
+    3.16 ¿Proceso debe seguir ejecutándose?:
+        "Sí": Continuar al paso 17.
+        "No": Ir al paso 14.
+    3.17 Mover proceso al final de la cola de listos:
+    3.18 ¿Hay más procesos en el cronograma o en la cola?
+        "Sí": Volver al paso 3.
+        "No": Continuar al siguiente paso.
+    3.19 Fin
 
 
 Salida por cada proceso ejecutado:

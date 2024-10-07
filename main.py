@@ -4,102 +4,24 @@ import csv
 
 # Constantes
 QUANTO = 3
-
-
-def round_robin(procesos, quanto=3):
-    cronograma_falso = dict()
-    cronograma = dict()
-    no_times = 0
-    time = 0
-
-    while no_times < 10:
-        for proceso in procesos:
-            if (proceso["tiempo_arribo"] <= time) and (proceso['tiempo_irrupcion'] > 0):
-                if proceso['tiempo_irrupcion'] - quanto <= 0:
-                    time += proceso['tiempo_irrupcion']
-                    proceso['tiempo_irrupcion'] = 0
-                    no_times += 1
-                else:
-                    proceso["tiempo_irrupcion"] -= quanto
-                    time += quanto
-
-                cronograma_falso[time] = proceso["proceso_id"]
-    
-    # data = getData()
-    for tiempo, nombre_proceso in cronograma_falso.items():
-        for proceso in data:
-            if (nombre_proceso==proceso['proceso_id']):
-                cronograma[tiempo] = proceso
-
-    return cronograma
-
-def worst_fit(cola_listos, mp, finalizados):
-    max_espacio_libre = 0
-    max_indice = 0
-
-    for key,value in mp.items():
-        if value['espacio_ocupado']==0:
-            espacio_libre = value['espacio_libre']-cola_listos[0]['tamanio']
-            if espacio_libre > max_espacio_libre:
-                max_espacio_libre = espacio_libre
-                max_indice = key
-    
-    if max_indice != 0:
-        mp[max_indice]['espacio_libre'] = max_espacio_libre
-        mp[max_indice]['espacio_ocupado'] = cola_listos[0]['tamanio']
-        finalizados.append(cola_listos[0])
-        cola_listos.pop(0)
-        # print(mp)
-       # print(cola_listos)
-        
-    return [max_espacio_libre, max_indice]
-
-def imprimir():
-    pass
-
-def calcular_tiempos():
-    pass
-
-def procesador(cronograma):
-    cola_listos = cronograma[:5] # agrego primero cinco procesos
-    cola_suspendidos = []
-    finalizados = []
-    mp = { 
+MEMORIA_PRINCIPAL = { 
        1: {
-        'espacio_ocupado': 0,
-        'espacio_libre': 250000
+        'dir_inicial': 0,
+        'tamanio': 250000,
+        'proceso': 0,
+        'estado': 'libre'
     }, 2: {
-        'espacio_ocupado': 0,
-        'espacio_libre': 150000
+        'dir_inicial': 250000,
+        'tamanio': 150000,
+        'proceso': 0,
+        'estado': 'libre'
     }, 3: {
-        'espacio_ocupado': 0,
-        'espacio_libre': 50000
+        'dir_inicial': 400000,
+        'tamanio': 50000,
+        'proceso': 0,
+        'estado': 'libre'
     }}
-    fr_int = []
-    fr_ext = []
-    tiempo = cronograma[0].tiempo_arribo
-    proceso_actual = cronograma[0].proceso_id
 
-    
-    while len(finalizados) != len(cronograma):
-
-        while cola_listos['tiempo_arribo'] <= tiempo:
-            cola_listos.append(cronograma[5+len(finalizados)])
-            resultados = worst_fit(cola_listos, mp, finalizados)
-
-            if resultados[1] == 0:
-                break
-
-        
-
-
-        
-        
-        if proceso_actual != '':
-            print(proceso_actual["proceso_id"], tiempo)
-            finalizados.append(cronograma[len(finalizados)])
-        else:
-            tiempo += QUANTO
 
 def leer_json(json_file_path):
     with open(json_file_path, mode='r', encoding='utf-8') as json_file:
@@ -114,7 +36,7 @@ def leer_csv(csv_file_path):
             data.append(row)
     return data
 
-def cargar_datos(file_path):
+def obtener_datos(file_path):
     if file_path.endswith('.json'):
         return leer_json(file_path)
     elif file_path.endswith('.csv'):
@@ -122,13 +44,133 @@ def cargar_datos(file_path):
     else:
         raise ValueError("Formato de archivo no soportado. Usa JSON o CSV.")
 
+def ordenar_datos(datos):
+    return sorted(datos, key=lambda x: x['tiempo_arribo'])
 
+def crearCronogramaRR(datos_ordenados):
+    tiempo_general = 0
+    var_corte = 0 
+    cronograma = {}
+
+    while var_corte < len(datos_ordenados):
+        
+        for proceso in datos_ordenados:
+            if proceso['tiempo_arribo'] <= tiempo_general:
+                if proceso['tiempo_irrupcion'] != 0:
+                    cronograma[tiempo_general] = proceso.copy()
+                    if proceso['tiempo_irrupcion'] <= QUANTO:
+                        tiempo_general += proceso['tiempo_irrupcion']
+                        proceso['tiempo_irrupcion'] = 0
+                        var_corte += 1
+                    else:
+                        proceso['tiempo_irrupcion'] -= QUANTO
+                        tiempo_general += QUANTO
+            
+        
+    return cronograma
+
+def asignarMemoria(cronograma):
+    claves = list(cronograma.keys())
+    i = 0
+    cola_listos = []
+    cola_listos_bloqueados = []
+    cola_terminados = []
+    tiempo_general = claves[i]
+
+    while len(cronograma) > 0:
+        print('====================================================================')
+        print('Tiempo general: ', tiempo_general)
+        proceso_en_ejecucion = cronograma[claves[i]]
+
+        # agregamos procesos a cola de listos o a cola de listos y bloqueados
+        j = 0
+        for j in range(10):
+            if cronograma[claves[j]]['estado']=='nuevo' and cronograma[claves[j]]['tiempo_arribo'] <= tiempo_general:
+                if len(cola_listos) < 3:
+                    cola_listos.append(cronograma[claves[j]])
+                    cronograma[claves[j]]['estado'] = 'listo'
+                    
+                elif len(cola_listos_bloqueados) < 2:
+                    cola_listos_bloqueados.append(cronograma[claves[j]])
+                    cronograma[claves[j]]['estado'] = 'bloqueado'
+
+            else:
+                break
+
+        
+        # nos fijamos si el primer proceso puede ser asignado a una particion en memoria
+        while len(cola_listos) > 0:
+            asignado = worstFit(cola_listos[0])
+            if asignado == 0:
+            # fijarse si es un proceso que debe ser ejecutado 
+                break
+            else:
+                MEMORIA_PRINCIPAL[asignado]['proceso'] = cola_listos[0]['proceso_id']
+                MEMORIA_PRINCIPAL[asignado]['estado'] = 'ocupado'
+                cola_listos.pop(0)
+        
+        print('Cola de listos: ', cola_listos)
+        print('Cola de listos bloqueados: ', cola_listos_bloqueados)
+        imprimirMP()
+        print('Cola de terminados: ', cola_terminados)
+
+        # chequeamos que el proceso en ejecucion este asignado en memoria
+        
+        esta_en_mp = False
+        for particion in MEMORIA_PRINCIPAL:
+            if MEMORIA_PRINCIPAL[particion]['proceso'] == proceso_en_ejecucion['proceso_id']:
+                esta_en_mp = True
+                MEMORIA_PRINCIPAL[particion]['estado'] = 'libre'
+                MEMORIA_PRINCIPAL[particion]['proceso'] = 0
+        
+        if esta_en_mp:
+            print('Proceso en ejecucion: ', proceso_en_ejecucion['proceso_id'])
+            i += 1
+            if proceso_en_ejecucion['tiempo_irrupcion'] - QUANTO <= 0:
+                cola_terminados.append(proceso_en_ejecucion['proceso_id'])
+                tiempo_general += proceso_en_ejecucion['tiempo_irrupcion']
+                # del cronograma[claves[i]]
+            else:
+                tiempo_general += QUANTO
+        
+        input('Presiona enter para continuar...')
+        
+
+def worstFit(proceso):
+    tamanio_proceso = proceso['tamanio']
+    max_fr_int = -999
+    particion = 0
+
+    for key, value in MEMORIA_PRINCIPAL.items():
+        if value['estado'] == 'libre' and value['tamanio'] - tamanio_proceso >= max_fr_int:
+            max_fr_int = value['tamanio'] - tamanio_proceso
+            particion = key
+            
+    return particion
+
+def imprimirMP():
+    print('Memoria principal: ')
+    for key, value in MEMORIA_PRINCIPAL.items():
+        print(key, value)
+
+def imprimirDatos(datos):
+    print('Procesos: ')
+    for key, value in datos.items():
+        print(key, value)
 #######################################################
-data = cargar_datos('procesos.json')
+# Obteniedo datos de un archivo
+datos = obtener_datos('procesos.json')
 
-cronograma = round_robin(data)
+# Ordenando datos segun tiempo de arribo
+datos_ordenados = ordenar_datos(datos)
 
-print(cronograma)
-# procesador(cronograma)
+# Creando cronograma de ejecucion
+cronograma = crearCronogramaRR(datos_ordenados)
+# print(cronograma)
+
+# Procesando cronograma
+asignarMemoria(cronograma)
+
+
 
 

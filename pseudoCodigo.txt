@@ -1,0 +1,108 @@
+INICIO
+
+CONSTANTE QUANTO = 3
+CONSTANTE MEMORIA_PRINCIPAL = {
+    particion_1: {dir_inicial: 0, tamanio: 250000, proceso: 0, estado: 'libre'},
+    particion_2: {dir_inicial: 250000, tamanio: 150000, proceso: 0, estado: 'libre'},
+    particion_3: {dir_inicial: 400000, tamanio: 50000, proceso: 0, estado: 'libre'}
+}
+
+FUNCION leer_json(archivo_json):
+    ABRIR archivo_json
+    LEER y DECODIFICAR contenido
+    RETORNAR contenido
+
+FUNCION leer_csv(archivo_csv):
+    ABRIR archivo_csv
+    LEER contenido como CSV
+    RETORNAR datos en formato de lista
+
+FUNCION obtener_datos(ruta_archivo):
+    SI archivo termina en '.json':
+        RETORNAR leer_json(ruta_archivo)
+    SI archivo termina en '.csv':
+        RETORNAR leer_csv(ruta_archivo)
+    CASO CONTRARIO:
+        LANZAR ERROR "Formato no soportado. Usa JSON o CSV"
+
+FUNCION ordenar_datos(datos):
+    ORDENAR datos por 'tiempo_arribo'
+    RETORNAR datos ordenados
+
+FUNCION crearCronogramaRR(datos_ordenados):
+    INICIALIZAR tiempo_general = 0
+    INICIALIZAR var_corte = 0
+    INICIALIZAR cronograma = VACIO
+
+    MIENTRAS var_corte < cantidad_procesos:
+        PARA CADA proceso EN datos_ordenados:
+            SI 'tiempo_arribo' del proceso <= tiempo_general:
+                SI 'tiempo_irrupcion' > 0:
+                    AGREGAR proceso al cronograma con clave tiempo_general
+                    SI 'tiempo_irrupcion' <= QUANTO:
+                        INCREMENTAR tiempo_general en 'tiempo_irrupcion'
+                        'tiempo_irrupcion' = 0
+                        var_corte += 1
+                    SI NO:
+                        DECREMENTAR 'tiempo_irrupcion' en QUANTO
+                        INCREMENTAR tiempo_general en QUANTO
+
+    RETORNAR cronograma
+
+FUNCION asignarMemoria(cronograma):
+    OBTENER claves de cronograma
+    INICIALIZAR i = 0
+    INICIALIZAR listas de control: cola_listos, cola_listos_bloqueados, cola_terminados = VACIO
+    INICIALIZAR tiempo_general = primer valor en claves
+
+    MIENTRAS cantidad_procesos_terminados < cantidad_total_procesos:
+        MOSTRAR tiempo_general
+        proceso_en_ejecucion = cronograma en posición i
+
+        PARA CADA proceso EN cronograma:
+            SI 'estado' == 'nuevo' Y 'tiempo_arribo' <= tiempo_general:
+                SI longitud de cola_listos < 3:
+                    AGREGAR proceso a cola_listos
+                    CAMBIAR 'estado' del proceso a 'listo'
+
+        MIENTRAS cola_listos NO ESTÁ VACÍA:
+            asignado = FUNCION worstFit(cola_listos[0])
+            SI asignado != 0:
+                ASIGNAR proceso a partición en MEMORIA_PRINCIPAL
+                REMOVER proceso de cola_listos
+            SI NO:
+                SALIR del bucle
+
+        SI proceso_en_ejecucion está en MEMORIA_PRINCIPAL:
+            i += 1
+            SI 'tiempo_irrupcion' <= QUANTO:
+                AGREGAR proceso a cola_terminados
+                INCREMENTAR tiempo_general en 'tiempo_irrupcion'
+            SI NO:
+                INCREMENTAR tiempo_general en QUANTO
+
+        ESPERAR entrada del usuario para continuar
+
+FUNCION worstFit(proceso):
+    tamanio_proceso = 'tamanio' del proceso
+    max_frag = -INFINITO
+    particion = 0
+
+    PARA CADA partición en MEMORIA_PRINCIPAL:
+        SI partición está 'libre' Y su tamaño - tamanio_proceso >= max_frag:
+            ACTUALIZAR max_frag y particion
+    RETORNAR particion
+
+FUNCION imprimirMP():
+    MOSTRAR estado de cada partición en MEMORIA_PRINCIPAL
+
+FUNCION imprimirDatos(datos):
+    MOSTRAR información de cada proceso
+
+# Flujo principal
+datos = obtener_datos('procesos.json')
+datos_ordenados = ordenar_datos(datos)
+cronograma = crearCronogramaRR(datos_ordenados)
+asignarMemoria(cronograma)
+
+FIN

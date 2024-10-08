@@ -130,9 +130,3 @@ Tiempo promedio de retorno: tiempo
 Tiempo promedio de espera: tiempo
 
 Rendimiento del sistema: tiempo
-
-
-Pasos a seguir para resolver la asignacion de memoria:
-1. Vemos que procesos llegan en un instante y los agregamos a la cola de listos (hasta 3 procesos), sino caben en la lista de listos pero bloqueados hasta 2 procesos. El resto esperan. A medida que entran en colas se eliminan del cronograma.
-2. Recorremos la cola de listos y vemos si cabe en alguna particion segun worst fit.
-3. 

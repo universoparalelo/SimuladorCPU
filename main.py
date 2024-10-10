@@ -77,6 +77,7 @@ def asignarMemoria(cronograma):
     cola_terminados = []
     tiempo_general = claves[0]
     ultimo_valor = 0
+    tiempos = []
 
     while (len(cola_terminados) < 10):
         print('====================================================================')
@@ -131,11 +132,18 @@ def asignarMemoria(cronograma):
             if proceso_en_ejecucion['tiempo_irrupcion'] - QUANTO <= 0:
                 cola_terminados.append(proceso_en_ejecucion['proceso_id'])
                 tiempo_general += proceso_en_ejecucion['tiempo_irrupcion']
+                tiempo_retorno = tiempo_general - proceso_en_ejecucion['tiempo_arribo']
+                tiempos.append({
+                    'proceso': proceso_en_ejecucion['proceso_id'],
+                    'tiempo_retorno': tiempo_retorno,
+                    'tiempo_espera': tiempo_retorno - proceso_en_ejecucion['tiempo_irrupcion']
+                })
                 # del cronograma[claves[0]]
             else:
                 tiempo_general += QUANTO
         
         input('Presiona enter para continuar...')
+    imprimirTiempos(tiempos, tiempo_general)
         
 
 def worstFit(proceso):
@@ -155,6 +163,23 @@ def imprimirMP():
     for key, value in MEMORIA_PRINCIPAL.items():
         print(key, value)
 
+def imprimirTiempos(tiempos, tiempo_total):
+    print('------------------------------------------------------------')
+    print('Tiempo de retorno y espera de cada proceso: ')
+    print('Proceso | Tiempo de retorno | Tiempo de espera')
+    for tiempo in tiempos:
+        print(tiempo['proceso'], ' | ', tiempo['tiempo_retorno'], ' | ', tiempo['tiempo_espera'])
+    
+    tiempo_retorno_promedio = sum([tiempo['tiempo_retorno'] for tiempo in tiempos]) / len(tiempos)
+    tiempo_espera_promedio = sum([tiempo['tiempo_espera'] for tiempo in tiempos]) / len(tiempos)
+    print('Tiempo de retorno promedio: ', tiempo_retorno_promedio)
+    print('Tiempo de espera promedio: ', tiempo_espera_promedio)
+    rendimiento = len(tiempos) / tiempo_total
+    print('Rendimiento: ', rendimiento)
+    print('--------------------------------------------------------------')
+
+
+
 def imprimirDatos(datos):
     print('Procesos: ')
     for key, value in datos.items():
@@ -168,7 +193,6 @@ datos_ordenados = ordenar_datos(datos)
 
 # Creando cronograma de ejecucion
 cronograma = crearCronogramaRR(datos_ordenados)
-# print(cronograma)
 
 # Procesando cronograma
 asignarMemoria(cronograma)

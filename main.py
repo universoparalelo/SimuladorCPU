@@ -9,17 +9,20 @@ MEMORIA_PRINCIPAL = {
         'dir_inicial': 0,
         'tamanio': 250000,
         'proceso': 0,
-        'estado': 'libre'
+        'estado': 'libre',
+        'fr_interna': 0
     }, 2: {
         'dir_inicial': 250000,
         'tamanio': 150000,
         'proceso': 0,
-        'estado': 'libre'
+        'estado': 'libre',
+        'fr_interna': 0
     }, 3: {
         'dir_inicial': 400000,
         'tamanio': 50000,
         'proceso': 0,
-        'estado': 'libre'
+        'estado': 'libre',
+        'fr_interna': 0
     }}
 
 
@@ -47,100 +50,118 @@ def obtener_datos(file_path):
 def ordenar_datos(datos):
     return sorted(datos, key=lambda x: x['tiempo_arribo'])
 
-def crearCronogramaRR(datos_ordenados):
-    tiempo_general = 0
-    var_corte = 0 
-    cronograma = {}
+# def crearCronogramaRR(datos_ordenados):
+#     tiempo_general = 0
+#     var_corte = 0 
+#     cronograma = {}
 
-    while var_corte < len(datos_ordenados):
+#     while var_corte < len(datos_ordenados):
         
-        for proceso in datos_ordenados:
-            if proceso['tiempo_arribo'] <= tiempo_general:
-                if proceso['tiempo_irrupcion'] != 0:
-                    cronograma[tiempo_general] = proceso.copy()
-                    if proceso['tiempo_irrupcion'] <= QUANTO:
-                        tiempo_general += proceso['tiempo_irrupcion']
-                        proceso['tiempo_irrupcion'] = 0
-                        var_corte += 1
-                    else:
-                        proceso['tiempo_irrupcion'] -= QUANTO
-                        tiempo_general += QUANTO
-            
-        
-    return cronograma
+#         for proceso in datos_ordenados:
+#             if proceso['tiempo_arribo'] <= tiempo_general:
+#                 if proceso['tiempo_irrupcion'] != 0:
+#                     cronograma[tiempo_general] = proceso.copy()
+#                     if proceso['tiempo_irrupcion'] <= QUANTO:
+#                         tiempo_general += proceso['tiempo_irrupcion']
+#                         proceso['tiempo_irrupcion'] = 0
+#                         var_corte += 1
+#                     else:
+#                         proceso['tiempo_irrupcion'] -= QUANTO
+#                         tiempo_general += QUANTO    
+    # return cronograma
 
-def asignarMemoria(cronograma):
-    claves = list(cronograma.keys())
+def asignarMemoria(procesos_ordenados):
+    # claves = list(procesos_ordenados)
     i = 0
     cola_listos = []
-    cola_listos_bloqueados = []
+    cola_listos_suspendidos = []
     cola_terminados = []
-    tiempo_general = claves[0]
-    ultimo_valor = 0
+    tiempo_general = 0
     tiempos = []
 
     while (len(cola_terminados) < 10):
-        print('====================================================================')
-        print('Tiempo general: ', tiempo_general)
-        proceso_en_ejecucion = cronograma[claves[i]]
 
-        # agregamos procesos a cola de listos o a cola de listos y bloqueados
-        for j in range(ultimo_valor, len(cronograma)):
-            if cronograma[claves[j]]['estado']=='nuevo' and cronograma[claves[j]]['tiempo_arribo'] <= tiempo_general:
+        # agregamos procesos a cola de listos o a cola de listos y suspendidos
+        for proceso in procesos_ordenados:
+            if proceso['estado']=='nuevo' and proceso['tiempo_arribo'] <= tiempo_general:
                 if len(cola_listos) < 3:
-                    cola_listos.append(cronograma[claves[j]])
-                    cronograma[claves[j]]['estado'] = 'listo'
-                    ultimo_valor += 1
-                    
-                # elif len(cola_listos_bloqueados) < 2:
-                #     cola_listos_bloqueados.append(cronograma[claves[j]])
-                #     cronograma[claves[j]]['estado'] = 'bloqueado'
-                #     ultimo_valor += 1
+                    asignado = worstFit(proceso)
+                    if asignado == 0:
+                        if len(cola_listos_suspendidos) < 2:
+                            cola_listos_suspendidos.append(proceso)
+                            proceso['estado'] = 'suspendido'
+                    else:
+                        cola_listos.append(proceso)
+                        proceso['estado'] = 'listo'
+                        MEMORIA_PRINCIPAL[asignado]['proceso'] = proceso['proceso_id']
+                        MEMORIA_PRINCIPAL[asignado]['fr_interna'] = MEMORIA_PRINCIPAL[asignado]['tamanio'] - proceso['tamanio']
+                        MEMORIA_PRINCIPAL[asignado]['estado'] = 'ocupado'
+                       
+                elif len(cola_listos_suspendidos) < 2:
+                    cola_listos_suspendidos.append(proceso)
+                    proceso['estado'] = 'suspendido'
 
             else:
                 break
-
         
-        # nos fijamos si el primer proceso puede ser asignado a una particion en memoria
-        # voy a repetir codigo, optimizar mas adelante !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        while len(cola_listos) > 0:
-            asignado = worstFit(cola_listos[0])
-            if asignado == 0:
-                break
-            else:
-                MEMORIA_PRINCIPAL[asignado]['proceso'] = cola_listos[0]['proceso_id']
-                MEMORIA_PRINCIPAL[asignado]['estado'] = 'ocupado'
-                cola_listos.pop(0)
-        
-        print('Cola de listos: ', cola_listos)
-        print('Cola de listos bloqueados: ', cola_listos_bloqueados)
-        imprimirMP()
-        print('Cola de terminados: ', cola_terminados)
+        # sacar procesos de procesos_ordenados que ya estan en cola_listos y cola_listos_suspendidos
+        for proceso in procesos_ordenados:
+            if proceso in cola_listos or proceso in cola_listos_suspendidos:
+                procesos_ordenados.remove(proceso)
 
-        # chequeamos que el proceso en ejecucion este asignado en memoria
-        esta_en_mp = False
-        for particion in MEMORIA_PRINCIPAL:
-            if MEMORIA_PRINCIPAL[particion]['proceso'] == proceso_en_ejecucion['proceso_id']:
-                esta_en_mp = True
+
+        # ejecutar procesos en cola_listos
+        for proceso in cola_listos:
+            print('====================================================================')
+            print('Tiempo general: ', tiempo_general)
+            print('Cola de listos: ', cola_listos)
+            print('Cola de listos suspendidos: ', cola_listos_suspendidos)
+            imprimirMP()
+            print('Cola de terminados: ', cola_terminados)
+            print('Proceso en ejecucion: ', proceso['proceso_id'])
+            print('====================================================================')
+
+            if proceso['tiempo_irrupcion'] <= QUANTO:
+                tiempo_general += proceso['tiempo_irrupcion']
+                tiempo_retorno = tiempo_general - proceso['tiempo_arribo']
+                tiempos.append({
+                    'proceso': proceso['proceso_id'],
+                    'tiempo_retorno': tiempo_retorno,
+                    'tiempo_espera': tiempo_retorno - proceso['tiempo_irrupcion']
+                })
+                # buscar particion del proceso
+                particion = 0
+                for key, value in MEMORIA_PRINCIPAL.items():
+                    if value['proceso'] == proceso['proceso_id']:
+                        particion = key
+                        break
+
+                # libero memoria
                 MEMORIA_PRINCIPAL[particion]['estado'] = 'libre'
                 MEMORIA_PRINCIPAL[particion]['proceso'] = 0
-                break
-        
-        print('Proceso en ejecucion: ', proceso_en_ejecucion['proceso_id'])
-        if esta_en_mp:
-            i += 1
-            if proceso_en_ejecucion['tiempo_irrupcion'] - QUANTO <= 0:
-                cola_terminados.append(proceso_en_ejecucion['proceso_id'])
-                tiempo_general += proceso_en_ejecucion['tiempo_irrupcion']
-                tiempo_retorno = tiempo_general - proceso_en_ejecucion['tiempo_arribo']
-                tiempos.append({
-                    'proceso': proceso_en_ejecucion['proceso_id'],
-                    'tiempo_retorno': tiempo_retorno,
-                    'tiempo_espera': tiempo_retorno - proceso_en_ejecucion['tiempo_irrupcion']
-                })
-                # del cronograma[claves[0]]
+                MEMORIA_PRINCIPAL[particion]['fr_interna'] = 0
+                cola_listos.remove(proceso)
+                cola_terminados.append(proceso)
+
+                # pregunto por la cola de listos suspendidos
+                if len(cola_listos_suspendidos) > 0:
+                    nuevo_proceso = cola_listos_suspendidos[0]
+                    asignado = worstFit(nuevo_proceso)
+                    if asignado == 0:
+                        continue
+                    else:
+                        cola_listos.append(nuevo_proceso)
+                        nuevo_proceso['estado'] = 'listo'
+                        MEMORIA_PRINCIPAL[asignado]['proceso'] = nuevo_proceso['proceso_id']
+                        MEMORIA_PRINCIPAL[asignado]['fr_interna'] = MEMORIA_PRINCIPAL[asignado]['tamanio'] - nuevo_proceso['tamanio']
+                        MEMORIA_PRINCIPAL[asignado]['estado'] = 'ocupado'
+                        print(cola_listos_suspendidos, proceso)
+                        cola_listos_suspendidos.remove(nuevo_proceso)
+
             else:
                 tiempo_general += QUANTO
+                proceso['tiempo_irrupcion'] -= QUANTO
+
         
         input('Presiona enter para continuar...')
     imprimirTiempos(tiempos, tiempo_general)
@@ -178,12 +199,12 @@ def imprimirTiempos(tiempos, tiempo_total):
     print('Rendimiento: ', rendimiento)
     print('--------------------------------------------------------------')
 
-
-
 def imprimirDatos(datos):
     print('Procesos: ')
     for key, value in datos.items():
         print(key, value)
+
+
 #######################################################
 # Obteniedo datos de un archivo
 datos = obtener_datos('procesos.json')
@@ -191,11 +212,8 @@ datos = obtener_datos('procesos.json')
 # Ordenando datos segun tiempo de arribo
 datos_ordenados = ordenar_datos(datos)
 
-# Creando cronograma de ejecucion
-cronograma = crearCronogramaRR(datos_ordenados)
-
 # Procesando cronograma
-asignarMemoria(cronograma)
+asignarMemoria(datos_ordenados)
 
 
 

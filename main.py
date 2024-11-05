@@ -77,39 +77,40 @@ def asignarMemoria(procesos_ordenados):
     tiempo_general = 0
     tiempos = []
 
-    for proceso in list(procesos_ordenados):  # Usamos una copia para modificar el original
-        # Revisamos y asignamos procesos
-        for proceso in procesos_ordenados: 
-            if proceso['estado'] == 'nuevo' and proceso['tiempo_arribo'] <= tiempo_general:
-                if len(cola_listos) < 3:
-                    asignar_proceso_a_memoria(proceso, cola_listos, cola_listos_suspendidos)
-                elif len(cola_listos_suspendidos) < 2:
-                    proceso['estado'] = 'suspendido'
-                    cola_listos_suspendidos.append(proceso)
-                
-                procesos_ordenados.remove(proceso)
+    while len(cola_listos) < len(procesos_ordenados):
+        for proceso in list(procesos_ordenados):  # Usamos una copia para modificar el original
+            # Revisamos y asignamos procesos
+            for proceso in procesos_ordenados: 
+                if proceso['estado'] == 'nuevo' and proceso['tiempo_arribo'] <= tiempo_general:
+                    if len(cola_listos) < 3:
+                        asignar_proceso_a_memoria(proceso, cola_listos, cola_listos_suspendidos)
+                    elif len(cola_listos_suspendidos) < 2:
+                        proceso['estado'] = 'suspendido'
+                        cola_listos_suspendidos.append(proceso)
+                    
+                    procesos_ordenados.remove(proceso)
 
-         # sacar procesos de procesos_ordenados que ya estan en cola_listos y cola_listos_suspendidos
-        #for proceso in procesos_ordenados:
-         #   if proceso in cola_listos or proceso in cola_listos_suspendidos:
-          #      procesos_ordenados.remove(proceso)
+            # sacar procesos de procesos_ordenados que ya estan en cola_listos y cola_listos_suspendidos
+            #for proceso in procesos_ordenados:
+            #   if proceso in cola_listos or proceso in cola_listos_suspendidos:
+            #      procesos_ordenados.remove(proceso)
 
-        for proceso in cola_listos[:]:  # Itera sobre una copia para modificar la cola en ejecución
-            tiempo_anterior = tiempo_general
-            ejecutar_proceso(proceso, cola_listos, cola_listos_suspendidos, cola_terminados, tiempos, tiempo_general)
-            tiempo_general += min(QUANTO, proceso['tiempo_irrupcion']) - tiempo_anterior
+            for proceso in cola_listos[:]:  # Itera sobre una copia para modificar la cola en ejecución
+                tiempo_anterior = tiempo_general
+                ejecutar_proceso(proceso, cola_listos, cola_listos_suspendidos, cola_terminados, tiempos, tiempo_general)
+                tiempo_general += min(QUANTO, proceso['tiempo_irrupcion']) - tiempo_anterior
+            
+            # Mover procesos de suspendidos a listos si hay espacio
+            while len(cola_listos) < 3 and cola_listos_suspendidos:
+                proceso_suspendido = cola_listos_suspendidos.pop(0)
+                proceso_suspendido['estado'] = 'listo'
+                asignar_proceso_a_memoria(proceso_suspendido, cola_listos, cola_listos_suspendidos)
+
+            # Pausa para continuar
+            print("Estado actual de la simulación. Presiona enter para continuar...")
+            input()
         
-        # Mover procesos de suspendidos a listos si hay espacio
-        while len(cola_listos) < 3 and cola_listos_suspendidos:
-            proceso_suspendido = cola_listos_suspendidos.pop(0)
-            proceso_suspendido['estado'] = 'listo'
-            asignar_proceso_a_memoria(proceso_suspendido, cola_listos, cola_listos_suspendidos)
-
-        # Pausa para continuar
-        print("Estado actual de la simulación. Presiona enter para continuar...")
-        input()
-    
-    imprimirTiempos(tiempos, tiempo_general)
+        imprimirTiempos(tiempos, tiempo_general)
 
 # Ejecutar procesos
 def ejecutar_proceso(proceso, cola_listos, cola_listos_suspendidos, cola_terminados, tiempos, tiempo_general):
@@ -131,11 +132,7 @@ def ejecutar_proceso(proceso, cola_listos, cola_listos_suspendidos, cola_termina
             'tiempo_espera': tiempo_retorno - proceso['tiempo_irrupcion']
         })
         # buscar particion del proceso
-        particion = 0
-        for key, value in MEMORIA_PRINCIPAL.items():
-            if value['proceso'] == proceso['proceso_id']:
-                particion = key
-                break
+        particion = next((key for key, val in MEMORIA_PRINCIPAL.items() if val['proceso'] == proceso['proceso_id']), 0)
         actualizar_estado_memoria(particion, proceso, liberar=True)
         cola_listos.remove(proceso)
         cola_terminados.append(proceso)

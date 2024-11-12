@@ -31,11 +31,27 @@ def leer_json(json_file_path):
     return data
 
 
+def convertir_valor(valor):
+    """Intenta convertir el valor a int o float, si es posible."""
+    try:
+        # Intenta convertir a entero
+        return int(valor)
+    except ValueError:
+        try:
+            # Intenta convertir a decimal (float)
+            return float(valor)
+        except ValueError:
+            # Si no se puede convertir, retorna el valor original (string)
+            return valor
+
+
 def leer_csv(csv_file_path):
     data = []
     with open(csv_file_path, mode='r', encoding='utf-8') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
+            # Convierte cada valor del diccionario usando la función `convertir_valor`
+            row = {key: convertir_valor(value) for key, value in row.items()}
             data.append(row)
     return data
 
@@ -50,7 +66,12 @@ def obtener_datos(file_path):
 
 
 def ordenar_datos(datos):
+    # Agregar el nuevo atributo a cada proceso
+    for proceso in datos:
+        proceso['tiempo_irrupcion_constante'] = proceso['tiempo_irrupcion']
+
     return sorted(datos, key=lambda x: x['tiempo_arribo'])
+
 
 def actualizar_estado_memoria(particion, proceso, liberar=False):
     if liberar:
@@ -61,6 +82,7 @@ def actualizar_estado_memoria(particion, proceso, liberar=False):
             'estado': 'ocupado',
             'fr_interna': MEMORIA_PRINCIPAL[particion]['tamanio'] - proceso['tamanio']
         })
+
 
 def asignar_proceso_a_memoria(proceso, cola_listos, cola_listos_suspendidos, suspendido=False):
     particion = worstFit(proceso)
@@ -89,41 +111,46 @@ def asignarMemoria(procesos_ordenados):
 
     while (len(cola_listos) > 0):
         # ejecutar procesos en cola_listos
-        for proceso in cola_listos:
-            impresionParcial(tiempo_general, cola_listos, cola_listos_suspendidos, cola_terminados, proceso)
+        # for proceso in cola_listos:
+        proceso = cola_listos[0]
 
-            # el proceso ya termino de ejecutarse entonces liberamos memoria y lo pasamos a cola de terminados
-            # aniadimos un proceso de la cola de listos suspendidos a la cola de listos SI ES POSIBLE
-            if proceso['tiempo_irrupcion'] <= QUANTO:
-                tiempo_general += proceso['tiempo_irrupcion']
-                tiempo_retorno = tiempo_general - proceso['tiempo_arribo']
-                tiempos.append({
-                    'proceso': proceso['proceso_id'],
-                    'tiempo_retorno': tiempo_retorno,
-                    'tiempo_espera': tiempo_retorno - proceso['tiempo_irrupcion_constante']
-                })
-                # buscar particion del proceso
-                particion = 0
-                for key, value in MEMORIA_PRINCIPAL.items():
-                    if value['proceso'] == proceso['proceso_id']:
-                        particion = key
-                        break
+        impresionParcial(tiempo_general, cola_listos, cola_listos_suspendidos, cola_terminados, proceso)
 
-                actualizar_estado_memoria(particion, proceso, liberar=True)
-                cola_listos.remove(proceso)
-                cola_terminados.append(proceso)
+        # el proceso ya termino de ejecutarse entonces liberamos memoria y lo pasamos a cola de terminados
+        # aniadimos un proceso de la cola de listos suspendidos a la cola de listos SI ES POSIBLE
+        if proceso['tiempo_irrupcion'] <= QUANTO:
+            tiempo_general += proceso['tiempo_irrupcion']
+            tiempo_retorno = tiempo_general - proceso['tiempo_arribo']
+            tiempos.append({
+                'proceso': proceso['proceso_id'],
+                'tiempo_retorno': tiempo_retorno,
+                'tiempo_espera': tiempo_retorno - proceso['tiempo_irrupcion_constante']
+            })
+            # buscar particion del proceso
+            particion = 0
+            for key, value in MEMORIA_PRINCIPAL.items():
+                if value['proceso'] == proceso['proceso_id']:
+                    particion = key
+                    break
 
-                # pregunto por la cola de listos suspendidos
-                if len(cola_listos_suspendidos) > 0:
-                    for proceso2 in cola_listos_suspendidos:
-                        asignar_proceso_a_memoria(proceso2, cola_listos, cola_listos_suspendidos, suspendido=True)
-                        break
+            actualizar_estado_memoria(particion, proceso, liberar=True)
+            cola_listos.remove(proceso)
+            cola_terminados.append(proceso)
 
-            else:
-                tiempo_general += QUANTO
-                proceso['tiempo_irrupcion'] -= QUANTO
-                
-            agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
+            # pregunto por la cola de listos suspendidos
+            if len(cola_listos_suspendidos) > 0:
+                for proceso2 in cola_listos_suspendidos:
+                    asignar_proceso_a_memoria(proceso2, cola_listos, cola_listos_suspendidos, suspendido=True)
+                    break
+
+        else:
+            tiempo_general += QUANTO
+            proceso['tiempo_irrupcion'] -= QUANTO
+            # El proceso que se estaba ejecutando pasa al final de la cola de listos
+            procesoEnEjecucion = cola_listos.pop(0)
+            cola_listos.append(procesoEnEjecucion)
+            
+        agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
         
     imprimirTiempos(tiempos, tiempo_general, cantidad_procesos)
 
@@ -179,48 +206,66 @@ def impresionParcial(tiempo_general, cola_listos, cola_listos_suspendidos, cola_
     imprimirMP()
     print('\nCola de terminados: ', end="")
     for proceso4 in cola_terminados: print(proceso4['proceso_id'], end=" ")
-    print('Proceso en ejecucion: ', proceso['proceso_id'])
+    print('\nProceso en ejecucion: ', proceso['proceso_id'])
     print('====================================================================')
     input('Presiona enter para continuar...')
 
 
 def imprimirMP():
-    print('\nMemoria principal: ')
-    valores = MEMORIA_PRINCIPAL[1].keys()
-    for valor in valores:
-        print(valor, end=" | ")
-    
+    print('\nMemoria Principal:')
+    headers = list(MEMORIA_PRINCIPAL[1].keys())
+    header_line = f"| {'Partición':^10} | " + " | ".join([f"{h:^15}" for h in headers]) + " |"
+    separator = '-' * len(header_line)
+
+    print(separator)
+    print(header_line)
+    print(separator)
+
     for key, value in MEMORIA_PRINCIPAL.items():
-        print(f"\n{key}", end=" | ")
-        for v in value.values():
-            print(v, end=" | ")
+        row = f"| {key:^10} | " + " | ".join([f"{str(v):^15}" for v in value.values()]) + " |"
+        print(row)
+        print(separator)
 
 
 def imprimirTiempos(tiempos, tiempo_total, total_procesos):
-    print('------------------------------------------------------------')
-    print('Tiempo de retorno y espera de cada proceso: ')
-    print('Proceso | Tiempo de retorno | Tiempo de espera')
+    print('\n' + '=' * 60)
+    print('Tiempo de retorno y espera de cada proceso:')
+    print('-' * 60)
+
+    # Encabezado de la tabla
+    header = f"| {'Proceso':^10} | {'Tiempo Retorno':^15} | {'Tiempo Espera':^15} |"
+    separator = '-' * len(header)
+
+    print(header)
+    print(separator)
+
+    # Imprimir cada proceso con sus tiempos
     for tiempo in tiempos:
-        print(tiempo['proceso'], ' | ', tiempo['tiempo_retorno'], ' | ', tiempo['tiempo_espera'])
-    
-    tiempo_retorno_promedio = sum([tiempo['tiempo_retorno'] for tiempo in tiempos]) / len(tiempos)
-    tiempo_espera_promedio = sum([tiempo['tiempo_espera'] for tiempo in tiempos]) / len(tiempos)
-    print('Tiempo de retorno promedio: ', tiempo_retorno_promedio)
-    print('Tiempo de espera promedio: ', tiempo_espera_promedio)
-    rendimiento = (total_procesos / tiempo_total)*100
-    print('Rendimiento: ', rendimiento, '%')
-    print('--------------------------------------------------------------')
+        proceso = tiempo['proceso']
+        tiempo_retorno = tiempo['tiempo_retorno']
+        tiempo_espera = tiempo['tiempo_espera']
+        print(f"| {proceso:^10} | {tiempo_retorno:^15} | {tiempo_espera:^15} |")
 
+    print(separator)
 
-def imprimirDatos(datos):
-    print('Procesos: ')
-    for key, value in datos.items():
-        print(key, value)
+    # Cálculo y impresión de promedios
+    tiempo_retorno_promedio = sum([t['tiempo_retorno'] for t in tiempos]) / len(tiempos)
+    tiempo_espera_promedio = sum([t['tiempo_espera'] for t in tiempos]) / len(tiempos)
+
+    print(f"| {'Promedio':^10} | {tiempo_retorno_promedio:^15.2f} | {tiempo_espera_promedio:^15.2f} |")
+    print(separator)
+
+    # Cálculo e impresión del rendimiento
+    rendimiento = (total_procesos / tiempo_total) * 100
+    print(f"Rendimiento: {rendimiento:.2f}%")
+    print('=' * 60)
+
 
 
 #######################################################
 # Obteniedo datos de un archivo
-datos = obtener_datos(r'C:\Users\ACER\Desktop\TPI_SO\SimuladorCPU\procesos.json')
+# datos = obtener_datos('ejemplo3.csv')
+datos = obtener_datos('ejemplo3.json')
 
 # Ordenando datos segun tiempo de arribo
 datos_ordenados = ordenar_datos(datos)

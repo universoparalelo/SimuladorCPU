@@ -3,7 +3,6 @@
         "proceso_id": "P1",
         "tiempo_arribo": 0,
         "tiempo_irrupcion": 2,
-        "tiempo_irrupcion_constante": 2,
         "tamanio": 50000,
         "estado": "nuevo"
     },

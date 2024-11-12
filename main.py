@@ -176,7 +176,7 @@ def impresionParcial(tiempo_general, cola_listos, cola_listos_suspendidos, cola_
     imprimirMP()
     print('\nCola de terminados: ', end="")
     for proceso4 in cola_terminados: print(proceso4['proceso_id'], end=" ")
-    print('Proceso en ejecucion: ', proceso['proceso_id'])
+    print('\nProceso en ejecucion: ', proceso['proceso_id'])
     print('====================================================================')
     input('Presiona enter para continuar...')
 

@@ -86,7 +86,7 @@ def actualizar_estado_memoria(particion, proceso, liberar=False):
 
 def asignar_proceso_a_memoria(proceso, cola_listos, cola_listos_suspendidos, suspendido=False):
     particion = worstFit(proceso)
-    if particion == 0 and len(cola_listos_suspendidos) < 2:
+    if particion == 0 and len(cola_listos_suspendidos) < 2 and proceso not in cola_listos_suspendidos:
         proceso['estado'] = 'suspendido'
         cola_listos_suspendidos.append(proceso)
     elif particion:
@@ -265,7 +265,7 @@ def imprimirTiempos(tiempos, tiempo_total, total_procesos):
 #######################################################
 # Obteniedo datos de un archivo
 # datos = obtener_datos('ejemplo3.csv')
-datos = obtener_datos('ejemplo3.json')
+datos = obtener_datos('ejemplo2.json')
 
 # Ordenando datos segun tiempo de arribo
 datos_ordenados = ordenar_datos(datos)

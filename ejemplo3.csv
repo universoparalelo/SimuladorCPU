@@ -1,8 +1,0 @@
-proceso_id,tiempo_arribo,tiempo_irrupcion,tamanio,estado
-P1,0,3,45000,nuevo
-P2,1,5,200000,nuevo
-P3,2,2,50000,nuevo
-P4,3,8,120000,nuevo
-P5,3,6,300000,nuevo
-P6,4,7,75000,nuevo
-P7,5,4,180000,nuevo

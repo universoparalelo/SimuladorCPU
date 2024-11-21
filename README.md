@@ -11,7 +11,6 @@ Este proyecto es un **simulador de procesador** que implementa planificación de
 5. [Uso del programa](#uso-del-programa)
 6. [Ejemplos](#ejemplos)
 7. [Contribución](#contribución)
-8. [Créditos](#créditos)
 
 ## Descripción
 
@@ -31,7 +30,7 @@ El objetivo del proyecto es brindar una herramienta didáctica para estudiar la 
 
 El simulador incluye un archivo ejecutable que funciona en cualquier sistema operativo (Windows, macOS, Linux). Si deseas ejecutar el código fuente, necesitarás:
 
-- **Python 3.x**
+- **Python 3.11.1**
 - Librería **tkinter** (incluida por defecto en Python para la interfaz gráfica).
 
 ## Instalación
@@ -87,7 +86,7 @@ python ui.py
 
 ## Ejemplos
 
-En la carpeta `ejemplos/` encontrarás archivos JSON que puedes usar para probar el simulador. Los ejemplos muestran diferentes configuraciones de procesos y asignaciones de memoria.
+En la carpeta `ejemplos/` encontrarás archivos JSON y CSV que puedes usar para probar el simulador. Los ejemplos muestran diferentes configuraciones de procesos y asignaciones de memoria.
 
 ## Contribución
 
@@ -95,14 +94,6 @@ Este proyecto es parte de un trabajo práctico para el curso de **Sistemas Opera
 
 ## Créditos
 
-- **Curso**: Sistemas Operativos, Universidad XYZ
-- **Estudiantes**:
-  - [Estudiante 1](https://github.com/estudiante1)
-  - [Estudiante 2](https://github.com/estudiante2)
-  - [Estudiante 3](https://github.com/estudiante3)
-
-## Contacto
-
-Para más información, puedes contactar a cualquiera de los estudiantes o al profesor del curso.
+- **Curso**: Sistemas Operativos, Universidad UTN FRRe
 
 

@@ -60,7 +60,7 @@ def mostrar_tiempos(tiempos, tiempo_total, total_procesos):
 
 
 if __name__ == "__main__":
-    datos = obtener_datos('ejemplo1.json')
+    datos = obtener_datos('ejemplos\ejemplo1.json')
     datos_ordenados = ordenar_datos(datos)
     tiempos, historial, tiempo_final = asignarMemoria(datos_ordenados)
 

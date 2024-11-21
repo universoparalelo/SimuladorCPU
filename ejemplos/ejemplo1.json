@@ -72,7 +72,7 @@
     },
     {
         "proceso_id": "P10",
-        "tiempo_arribo": 5,
+        "tiempo_arribo": 40,
         "tiempo_irrupcion": 2,
         "tiempo_irrupcion_constante": 2,
         "tamanio": 90000,

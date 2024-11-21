@@ -60,7 +60,7 @@ class SimuladorMemoria:
         self.ventana_inicio.destroy()
 
         # Leer los datos del archivo seleccionado
-        datos = obtener_datos('ejemplo1.json')
+        datos = obtener_datos(self.archivo_seleccionado)
         datos_ordenados = ordenar_datos(datos)
         self.tiempos, self.historial, self.tiempo_final = asignarMemoria(datos_ordenados)
 

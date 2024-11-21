@@ -41,6 +41,7 @@ def obtener_datos(file_path):
         raise ValueError("Formato de archivo no soportado. Usa JSON o CSV.")
 
 def ordenar_datos(datos):
+    datos = [proceso for proceso in datos if proceso['tamanio'] <= 250000]
     for proceso in datos:
         proceso['tiempo_irrupcion_constante'] = proceso['tiempo_irrupcion']
     return sorted(datos, key=lambda x: x['tiempo_arribo'])
@@ -98,7 +99,11 @@ def asignarMemoria(procesos_ordenados):
 
     agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
 
-    while cola_listos:
+    while len(procesos_ordenados) != len(cola_terminados):
+        while len(cola_listos) == 0:
+            tiempo_general += QUANTO
+            agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
+
         proceso = cola_listos[0]
         historial.append((tiempo_general, list(cola_listos), list(cola_listos_suspendidos), list(cola_terminados), proceso, copy.deepcopy(MEMORIA_PRINCIPAL)))
 

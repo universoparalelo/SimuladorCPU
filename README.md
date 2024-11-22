@@ -1,3 +1,12 @@
+# Grupo: XPertOS
+
+Integrantes
+- Brizuela Yoel
+- Machado Matias
+- Martin Rodich Celeste
+- Vega Lourdes
+- Zibelman Irina
+
 # Simulador de Procesador
 
 Este proyecto es un **simulador de procesador** que implementa planificación de procesos usando **Round Robin** y asignación de memoria con **Worst Fit** utilizando particiones fijas. El simulador permite comprender conceptos fundamentales del manejo de procesos como las colas de **Listo** y **Listo Suspendido**.

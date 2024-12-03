@@ -1,6 +1,5 @@
 from logica import obtener_datos, ordenar_datos, asignarMemoria
 
-
 def mostrar_historial(historial):
     print('\nHistorial de la simulación:')
     for tiempo, cola_listos, cola_listos_suspendidos, cola_terminados, proceso, memoria_principal in historial:

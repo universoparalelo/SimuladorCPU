@@ -10,7 +10,6 @@
         "proceso_id": "P2",
         "tiempo_arribo": 0,
         "tiempo_irrupcion": 4,
-        "tiempo_irrupcion_constante": 4,
         "tamanio": 100000,
         "estado": "nuevo"
     },
@@ -18,7 +17,6 @@
         "proceso_id": "P3",
         "tiempo_arribo": 0,
         "tiempo_irrupcion": 5,
-        "tiempo_irrupcion_constante": 5,
         "tamanio": 70000,
         "estado": "nuevo"
     },
@@ -26,7 +24,6 @@
         "proceso_id": "P4",
         "tiempo_arribo": 2,
         "tiempo_irrupcion": 2,
-        "tiempo_irrupcion_constante": 5,
         "tamanio": 80000,
         "estado": "nuevo"
     },
@@ -34,7 +31,6 @@
         "proceso_id": "P5",
         "tiempo_arribo": 2,
         "tiempo_irrupcion": 2,
-        "tiempo_irrupcion_constante": 2,
         "tamanio": 40000,
         "estado": "nuevo"
     },
@@ -42,7 +38,6 @@
         "proceso_id": "P6",
         "tiempo_arribo": 3,
         "tiempo_irrupcion": 7,
-        "tiempo_irrupcion_constante": 7,
         "tamanio": 100000,
         "estado": "nuevo"
     },
@@ -50,7 +45,6 @@
         "proceso_id": "P7",
         "tiempo_arribo": 4,
         "tiempo_irrupcion": 10,
-        "tiempo_irrupcion_constante": 10,
         "tamanio": 150000,
         "estado": "nuevo"
     },
@@ -58,7 +52,6 @@
         "proceso_id": "P8",
         "tiempo_arribo": 5,
         "tiempo_irrupcion": 6,
-        "tiempo_irrupcion_constante": 6,
         "tamanio": 50000,
         "estado": "nuevo"
     },
@@ -66,7 +59,6 @@
         "proceso_id": "P9",
         "tiempo_arribo": 5,
         "tiempo_irrupcion": 3,
-        "tiempo_irrupcion_constante": 3,
         "tamanio": 70000,
         "estado": "nuevo"
     },
@@ -74,7 +66,6 @@
         "proceso_id": "P10",
         "tiempo_arribo": 40,
         "tiempo_irrupcion": 2,
-        "tiempo_irrupcion_constante": 2,
         "tamanio": 90000,
         "estado": "nuevo"
     }

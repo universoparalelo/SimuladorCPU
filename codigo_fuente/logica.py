@@ -104,7 +104,9 @@ def asignarMemoria(procesos_ordenados):
             tiempo_general += QUANTO
             agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
 
-        proceso = cola_listos[0]
+        # sacar proceso de cola_listos y llevarlo a ejecucion
+        proceso = cola_listos.pop(0)
+        proceso['estado'] = 'ejecucion'
         historial.append((tiempo_general, list(cola_listos), list(cola_listos_suspendidos), list(cola_terminados), proceso, copy.deepcopy(MEMORIA_PRINCIPAL)))
 
         if proceso['tiempo_irrupcion'] <= QUANTO:
@@ -117,7 +119,6 @@ def asignarMemoria(procesos_ordenados):
             })
             particion = next((key for key, value in MEMORIA_PRINCIPAL.items() if value['proceso'] == proceso['proceso_id']), 0)
             actualizar_estado_memoria(particion, proceso, liberar=True)
-            cola_listos.remove(proceso)
             cola_terminados.append(proceso)
 
             if cola_listos_suspendidos:
@@ -125,7 +126,7 @@ def asignarMemoria(procesos_ordenados):
         else:
             tiempo_general += QUANTO
             proceso['tiempo_irrupcion'] -= QUANTO
-            cola_listos.append(cola_listos.pop(0))
+            cola_listos.append(proceso)
 
         agregarColaListos(procesos_ordenados, cola_listos, cola_listos_suspendidos, tiempo_general)
 

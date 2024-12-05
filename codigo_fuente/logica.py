@@ -119,6 +119,7 @@ def asignarMemoria(procesos_ordenados):
             })
             particion = next((key for key, value in MEMORIA_PRINCIPAL.items() if value['proceso'] == proceso['proceso_id']), 0)
             actualizar_estado_memoria(particion, proceso, liberar=True)
+            proceso['estado'] = 'terminado'
             cola_terminados.append(proceso)
 
             if cola_listos_suspendidos:

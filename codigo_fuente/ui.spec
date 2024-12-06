@@ -5,7 +5,7 @@ a = Analysis(
     ['ui.py'],
     pathex=[],
     binaries=[],
-    datas=[('consola.py', '.')],
+    datas=[('logica.py')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
